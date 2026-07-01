@@ -453,9 +453,9 @@ let session = null;
 const SUPABASE_URL = "DEINE_SUPABASE_PROJECT_URL";
 const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
 const SUPABASE_CONFIGURED = !SUPABASE_URL.startsWith("DEINE_") && !SUPABASE_ANON_KEY.startsWith("DEIN_");
-let supabase = null;
+let sb = null;
 if(SUPABASE_CONFIGURED && window.supabase){
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 const STORAGE_KEY = "hsu-flashcards-state-v1";
@@ -467,9 +467,9 @@ async function loadState(){
   }catch(e){ state = {}; }
   ALL_CARDS.forEach(c => { if(!state[c.id]) state[c.id] = { box: 0 }; });
 
-  if(supabase){
+  if(sb){
     try{
-      const { data, error } = await supabase.from('flashcard_state').select('card_id, box');
+      const { data, error } = await sb.from('flashcard_state').select('card_id, box');
       if(data){
         data.forEach(row => {
           if(state[row.card_id]) state[row.card_id].box = row.box;
@@ -485,9 +485,9 @@ function saveState(){
 }
 
 async function syncCard(cardId, box){
-  if(!supabase) return;
+  if(!sb) return;
   try{
-    await supabase.from('flashcard_state').upsert({ card_id: cardId, box: box, updated_at: new Date().toISOString() });
+    await sb.from('flashcard_state').upsert({ card_id: cardId, box: box, updated_at: new Date().toISOString() });
   }catch(e){}
 }
 
