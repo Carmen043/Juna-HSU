@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>HSU Karteikarten</title>
+<style>
+  :root{
+    --tief: #16324F;
+    --alpin: #3E6D9C;
+    --himmel: #A7C7E7;
+    --creme: #F7F2E7;
+    --gold: #D9A441;
+    --terra: #C1533B;
+    --tanne: #4C7A50;
+    --karte-bg: #FFFFFF;
+    --text: #1E2A33;
+    --muted: #6B7A85;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  body{
+    margin:0;
+    font-family: 'Nunito', -apple-system, sans-serif;
+    background: var(--creme);
+    color: var(--text);
+    min-height:100vh;
+    padding-bottom: 2rem;
+  }
+  .raute-band{
+    height:14px;
+    background:
+      linear-gradient(45deg, var(--himmel) 25%, transparent 25%, transparent 75%, var(--himmel) 75%) 0 0/28px 28px,
+      linear-gradient(45deg, var(--himmel) 25%, var(--creme) 25%, var(--creme) 75%, var(--himmel) 75%) 14px 14px/28px 28px;
+  }
+  header{
+    padding: 1.1rem 1.2rem 0.6rem;
+    text-align:center;
+  }
+  h1{
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.5rem;
+    color: var(--tief);
+    margin: 0.2rem 0 0.1rem;
+    letter-spacing: 0.2px;
+  }
+  .sub{
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin: 0;
+  }
+  .mountain-wrap{
+    position:relative;
+    margin: 0.8rem auto 0.4rem;
+    max-width: 420px;
+    padding: 0 1rem;
+  }
+  .mountain-label{
+    position:absolute;
+    top: 4px;
+    right: 14px;
+    font-size: 0.72rem;
+    color: var(--muted);
+    font-weight: 700;
+  }
+  .screen{
+    max-width: 460px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+  .setup-card, .card-shell{
+    background: var(--karte-bg);
+    border-radius: 18px;
+    padding: 1.1rem 1.1rem 1.3rem;
+    box-shadow: 0 2px 10px rgba(22,50,79,0.08);
+    margin-bottom: 1rem;
+  }
+  .cat-list{
+    display:flex; flex-direction:column; gap:8px;
+    margin: 0.6rem 0 1rem;
+  }
+  .cat-item{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 10px 12px;
+    border: 1.5px solid #E4DCC8;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--tief);
+  }
+  .cat-item .count{
+    font-weight: 700;
+    font-size: 0.78rem;
+    color: var(--muted);
+    background: var(--creme);
+    padding: 2px 9px;
+    border-radius: 20px;
+  }
+  .cat-item.weak .count{ color: var(--terra); background:#FBE7E2; }
+  .toggle{
+    width: 42px; height: 24px; border-radius: 20px;
+    background: #DCD4BF; position:relative; flex-shrink:0; border:none; cursor:pointer;
+    margin-left: 10px;
+  }
+  .toggle.on{ background: var(--tanne); }
+  .toggle::after{
+    content:''; position:absolute; top:2px; left:2px;
+    width:20px; height:20px; border-radius:50%; background:white;
+    transition: transform 0.15s ease;
+  }
+  .toggle.on::after{ transform: translateX(18px); }
+  button.primary{
+    width:100%;
+    background: var(--tief);
+    color: white;
+    border:none;
+    padding: 14px;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 700;
+    font-family: 'Fredoka', sans-serif;
+    cursor:pointer;
+  }
+  button.primary:active{ transform: scale(0.98); }
+  button.ghost{
+    width:100%;
+    background: transparent;
+    color: var(--tief);
+    border: 1.5px solid var(--tief);
+    padding: 11px;
+    border-radius: 14px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    font-family: 'Fredoka', sans-serif;
+    cursor:pointer;
+    margin-top: 0.6rem;
+  }
+  .stat-row{
+    display:flex; justify-content:space-between;
+    font-size: 0.8rem; color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+  .progressbar{
+    height:8px; background:#EEE6D3; border-radius:6px; overflow:hidden; margin-bottom: 1rem;
+  }
+  .progressbar > div{
+    height:100%; background: var(--tanne); border-radius:6px;
+    transition: width 0.3s ease;
+  }
+  .flashcard{
+    min-height: 190px;
+    border-radius: 16px;
+    border: 2px solid var(--himmel);
+    background: var(--creme);
+    display:flex; flex-direction: column; align-items:center; justify-content:center;
+    text-align:center;
+    padding: 1.4rem 1.2rem;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--tief);
+    cursor:pointer;
+    position:relative;
+  }
+  .flashcard .tag{
+    position:absolute; top:10px; left:12px;
+    font-size:0.68rem; font-weight:700; color: var(--alpin);
+    text-transform:uppercase; letter-spacing:0.4px;
+  }
+  .flashcard .hint{
+    position:absolute; bottom:10px; font-size: 0.72rem; color: var(--muted); font-weight:600;
+  }
+  .flashcard.flipped{
+    background: #FFF; border-color: var(--gold);
+    color: var(--terra);
+  }
+  .answer-buttons{
+    display:flex; gap:10px; margin-top: 1rem;
+  }
+  .answer-buttons button{
+    flex:1; border:none; padding:14px 8px; border-radius:14px;
+    font-weight: 700; font-family:'Fredoka', sans-serif; font-size: 0.95rem; cursor:pointer;
+  }
+  .btn-again{ background:#FBE7E2; color: var(--terra); }
+  .btn-know{ background:#E3EFDF; color: var(--tanne); }
+  .btn-again:active, .btn-know:active{ transform: scale(0.97); }
+  .top-bar{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom: 0.7rem;
+  }
+  .back-link{
+    font-size: 0.85rem; color: var(--alpin); font-weight:700; cursor:pointer; background:none; border:none; padding:4px;
+  }
+  .cat-name{
+    font-size: 0.85rem; font-weight:700; color: var(--tief);
+  }
+  footer{
+    text-align:center; font-size: 0.72rem; color: var(--muted); margin-top: 1.2rem; padding: 0 2rem;
+  }
+  .empty{
+    text-align:center; padding: 2rem 1rem; color: var(--muted); font-size: 0.9rem;
+  }
+  .geo-map{
+    width: 100%;
+    max-height: 150px;
+    margin-bottom: 0.6rem;
+  }
+  .icon-map{
+    max-height: 70px;
+    width: 70px;
+    margin: 0 auto 0.6rem;
+    display:block;
+  }
+  .geo-region{ fill: #E4DCC8; stroke: #FFFFFF; stroke-width: 2; }
+  .geo-region-active{ fill: var(--terra); stroke: var(--tief); stroke-width: 2.5; }
+  .geo-dot{ fill: #C9BFA0; }
+  .geo-active{ fill: var(--terra); stroke: var(--tief); stroke-width: 2; }
+  .geo-pin{ fill: var(--gold); stroke: var(--tief); stroke-width: 1.5; }
+  .geo-pin-label{ font-size: 11px; font-weight: 700; fill: var(--tief); }
+</style>
+</head>
+<body>
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div class="raute-band"></div>
+
+<header>
+  <h1>HSU Karteikarten</h1>
+  <p class="sub">Bundesländer, Bayern & Kartenkunde</p>
+</header>
+
+<div class="mountain-wrap">
+  <span class="mountain-label" id="mountain-pct">0% geschafft</span>
+  <svg id="mountain-svg" viewBox="0 0 400 110" width="100%" height="90"></svg>
+</div>
+
+<div class="screen" id="app"></div>
+
+<footer>Der Fortschritt wird auf diesem Gerät gespeichert und wächst mit jeder Übung.</footer>
+
+<script>
+const DECKS = {
+  "bundeslaender": { name: "Bundesländer & Hauptstädte", color:"c1", cards: [
+    ["Schleswig-Holstein","Kiel"],["Mecklenburg-Vorpommern","Schwerin"],["Niedersachsen","Hannover"],
+    ["Brandenburg","Potsdam"],["Sachsen-Anhalt","Magdeburg"],["Hessen","Wiesbaden"],
+    ["Thüringen","Erfurt"],["Nordrhein-Westfalen","Düsseldorf"],["Sachsen","Dresden"],
+    ["Rheinland-Pfalz","Mainz"],["Saarland","Saarbrücken"],["Baden-Württemberg","Stuttgart"],
+    ["Bayern","München"],["Hamburg","Hamburg"],["Bremen","Bremen"],["Berlin","Berlin"]
+  ].map(([f,b]) => ({ front: "Hauptstadt von " + f + "?", back: b, geo: { type:"germany", key: f } }))},
+
+  "nachbarn_d": { name: "Nachbarländer Deutschlands", color:"c2", cards: [
+    ["Wie viele Staaten grenzen an Deutschland?","9"],
+    ["Nenne die 9 Nachbarländer Deutschlands.","Dänemark, Polen, Tschechien, Österreich, Schweiz, Frankreich, Luxemburg, Belgien, Niederlande"],
+    ["Nachbarland im Norden von Deutschland?","Dänemark"],
+    ["Nachbarland im Osten von Deutschland?","Polen"]
+  ]},
+
+  "bayern": { name: "Bayern Steckbrief", color:"c3", cards: [
+    ["Landeshauptstadt von Bayern?","München"],
+    ["Höchster Berg Bayerns?","Zugspitze (2.962 m)"],
+    ["Größter See Bayerns?","Chiemsee"],
+    ["Wie wird der Chiemsee auch genannt?","Bayerisches Meer"],
+    ["Längster Fluss durch Bayern?","Main"],
+    ["Ministerpräsident von Bayern?","Markus Söder"],
+    ["Fläche von Bayern?","70.542 km²"],
+    ["Einwohnerzahl Bayerns (ca.)?","13,12 Millionen"],
+    ["Nachbar-Bundesländer von Bayern?","Baden-Württemberg, Hessen, Thüringen, Sachsen"],
+    ["Direkte Nachbarländer (Staaten) von Bayern?","Österreich und Tschechien (indirekt auch Schweiz über den Bodensee)"],
+    ["Welche 4 Flüsse sind auf der Bayernkarte nummeriert?","Main, Donau, Isar, Inn"],
+    ["Weiterer wichtiger Fluss Bayerns neben Main, Donau, Isar, Inn?","Lech"]
+  ]},
+
+  "regierungsbezirke": { name: "Regierungsbezirke Bayerns", color:"c4", cards: [
+    { front:"Regierungssitz von Oberbayern?", back:"München", geo:{type:"bayern", key:"Oberbayern"} },
+    { front:"Regierungssitz von Niederbayern?", back:"Landshut", geo:{type:"bayern", key:"Niederbayern"} },
+    { front:"Regierungssitz der Oberpfalz?", back:"Regensburg", geo:{type:"bayern", key:"Oberpfalz"} },
+    { front:"Regierungssitz von Oberfranken?", back:"Bayreuth", geo:{type:"bayern", key:"Oberfranken"} },
+    { front:"Regierungssitz von Mittelfranken?", back:"Ansbach", geo:{type:"bayern", key:"Mittelfranken"} },
+    { front:"Regierungssitz von Unterfranken?", back:"Würzburg", geo:{type:"bayern", key:"Unterfranken"} },
+    { front:"Regierungssitz von Schwaben?", back:"Augsburg", geo:{type:"bayern", key:"Schwaben"} },
+    { front:"Wie viele Regierungsbezirke hat Bayern?", back:"7" },
+    { front:"Nachbarbezirke von Oberbayern?", back:"Schwaben, Mittelfranken, Oberpfalz, Niederbayern", geo:{type:"bayern", key:"Oberbayern"} }
+  ]},
+
+  "landkreise": { name: "Landkreise & Gemeinden", color:"c5", cards: [
+    { front:"In welchem Landkreis liegt Bernried?", back:"Weilheim-Schongau", geo:{type:"bayern", key:"Oberbayern", pin:"Bernried"} },
+    { front:"Nachbar-Landkreise von Weilheim-Schongau?", back:"Landsberg am Lech, Starnberg, Bad Tölz-Wolfratshausen, Garmisch-Partenkirchen", geo:{type:"bayern", key:"Oberbayern", pin:"Weilheim-Schongau"} },
+    { front:"Nachbargemeinden von Bernried?", back:"Wielenbach und Seeshaupt", geo:{type:"bayern", key:"Oberbayern", pin:"Bernried"} }
+  ]},
+
+  "kartenzeichen": { name: "Kartenzeichen & Legende", color:"c6", cards: [
+    { icon:"burg", back:"Burg" },
+    { icon:"parkplatz", back:"Parkplatz / Parkhaus" },
+    { icon:"friedhof", back:"Friedhof" },
+    { icon:"kirche", back:"Kirche" },
+    { icon:"fussweg", back:"Fußweg" },
+    { icon:"bahnlinie", back:"Eisenbahnlinie / Bahnlinie" },
+    { icon:"nadelwald", back:"Nadelwald / Tannenwald" },
+    { icon:"laubwald", back:"Laubwald" },
+    { icon:"wiese", back:"Wiese" },
+    { icon:"fluss", back:"Fluss" },
+    { icon:"see", back:"See" },
+    { icon:"haltestelle", back:"Haltestelle" },
+    { icon:"post", back:"Post" },
+    { icon:"krankenhaus", back:"Krankenhaus" },
+    { icon:"spielplatz", back:"Spielplatz" },
+    { icon:"freibad", back:"Freibad / Hallenbad" },
+    { icon:"aussichtspunkt", back:"Aussichtspunkt oder Denkmal" }
+  ].map(c => ({ front: "Was bedeutet dieses Kartenzeichen?", back: c.back, icon: c.icon }))},
+
+  "hoehenlinien": { name: "Höhenlinien & Maßstab", color:"c7", cards: [
+    ["Was benutzen Kartenzeichner, um Berge darzustellen?","Höhenlinien"],
+    ["Was ist eine Höhenlinie?","Eine gedachte Linie, die alle Punkte verbindet, die gleich hoch über dem Meeresspiegel liegen"],
+    ["Was bedeutet es, wenn Höhenlinien eng beieinander liegen?","Der Berg ist an dieser Stelle steiler"],
+    ["Wie nennt man die ausgemalten Flächen zwischen den Höhenlinien?","Höhenschichten"],
+    ["Was sagt der Maßstab einer Karte?","Um wie viel die Wirklichkeit verkleinert wurde"],
+    ["Maßstab 1:10 bedeutet was?","1 cm auf der Karte sind 10 cm in Wirklichkeit"],
+    ["Was passiert, je kleiner der Maßstab ist?","Die Strecke wird kleiner gezeichnet, aber es passt ein größeres Gebiet auf die Karte"]
+  ]},
+
+  "eu": { name: "EU-Hauptstädte", color:"c8", cards: [
+    ["Deutschland","Berlin"],["Frankreich","Paris"],["Polen","Warschau"],["Niederlande","Amsterdam"],
+    ["Belgien","Brüssel"],["Luxemburg","Luxemburg"],["Dänemark","Kopenhagen"],["Schweden","Stockholm"],
+    ["Finnland","Helsinki"],["Irland","Dublin"],["Estland","Tallinn"],["Lettland","Riga"],
+    ["Litauen","Vilnius"],["Tschechien","Prag"],["Österreich","Wien"],["Slowakei","Bratislava"],
+    ["Ungarn","Budapest"],["Slowenien","Ljubljana"],["Kroatien","Zagreb"],["Italien","Rom"],
+    ["Spanien","Madrid"],["Portugal","Lissabon"],["Griechenland","Athen"],["Rumänien","Bukarest"],
+    ["Bulgarien","Sofia"],["Malta","Valletta"],["Zypern","Nikosia"]
+  ].map(([land,hs]) => ({ front: "Hauptstadt von EU-Land " + land + "?", back: hs, geo: { type:"europe", key: land } }))}
+};
+
+let ALL_CARDS = [];
+Object.entries(DECKS).forEach(([deckId, deck]) => {
+  deck.cards.forEach((c, i) => {
+    const isArr = Array.isArray(c);
+    const front = isArr ? c[0] : c.front;
+    const back = isArr ? c[1] : c.back;
+    const geo = isArr ? null : c.geo;
+    const icon = isArr ? null : c.icon;
+    ALL_CARDS.push({ id: deckId + "_" + i, deck: deckId, front, back, geo, icon });
+  });
+});
+
+const GERMANY_POLY = {
+  "Schleswig-Holstein":"90,2 160,2 168,38 142,56 100,50 78,26",
+  "Mecklenburg-Vorpommern":"142,10 232,16 262,56 232,92 172,82 150,46 140,26",
+  "Hamburg":"116,50 136,48 139,66 118,68",
+  "Bremen":"76,94 98,91 103,113 79,116",
+  "Niedersachsen":"40,55 142,56 150,46 172,82 162,112 192,140 150,166 88,170 44,140 35,95",
+  "Berlin":"214,147 233,145 236,166 216,169",
+  "Brandenburg":"184,110 262,104 277,150 260,192 204,196 184,166 195,140",
+  "Sachsen-Anhalt":"140,110 184,110 195,140 184,166 150,171 134,140",
+  "Nordrhein-Westfalen":"28,140 88,170 106,210 70,236 33,216 18,176",
+  "Hessen":"106,175 150,171 161,210 141,236 104,226 94,200",
+  "Thueringen":"150,171 195,166 206,196 180,216 150,211 139,190",
+  "Sachsen":"206,196 262,192 277,226 246,246 209,230 195,210",
+  "Rheinland-Pfalz":"54,221 106,226 116,260 90,286 54,270 39,240",
+  "Saarland":"54,270 76,268 81,300 57,300",
+  "Baden-Wuerttemberg":"90,260 150,255 176,290 160,335 104,340 80,300 80,286",
+  "Bayern":"160,230 246,235 282,262 292,340 240,406 160,400 140,340 150,290"
+};
+const GERMANY_ORDER = ["Niedersachsen","Mecklenburg-Vorpommern","Brandenburg","Sachsen-Anhalt",
+  "Nordrhein-Westfalen","Hessen","Thueringen","Sachsen","Rheinland-Pfalz","Baden-Wuerttemberg",
+  "Bayern","Schleswig-Holstein","Saarland","Hamburg","Bremen","Berlin"];
+const GERMANY_KEYMAP = { "Thüringen":"Thueringen", "Baden-Württemberg":"Baden-Wuerttemberg" };
+
+const BAYERN_POLY = {
+  "Unterfranken":"40,10 110,4 122,42 92,76 44,70 24,40",
+  "Oberfranken":"122,4 192,16 202,56 162,80 122,60 122,42",
+  "Mittelfranken":"44,70 122,60 132,100 92,142 48,122",
+  "Oberpfalz":"122,60 162,80 202,56 212,142 152,152 132,100",
+  "Schwaben":"24,40 48,122 92,142 72,222 18,212 8,120",
+  "Niederbayern":"152,152 212,142 216,232 152,236 142,190",
+  "Oberbayern":"92,142 132,100 152,152 142,190 152,236 100,236 72,222"
+};
+const BAYERN_ORDER = ["Unterfranken","Oberfranken","Mittelfranken","Oberpfalz","Schwaben","Niederbayern","Oberbayern"];
+
+const EUROPE_CAPITALS = {
+  "Irland":[40,90],"Portugal":[42,232],"Spanien":[90,220],"Frankreich":[142,150],
+  "Belgien":[160,120],"Luxemburg":[164,130],"Niederlande":[155,105],"Deutschland":[200,110],
+  "Dänemark":[195,70],"Schweden":[222,40],"Finnland":[270,30],"Estland":[270,60],
+  "Lettland":[265,75],"Litauen":[260,90],"Polen":[230,100],"Tschechien":[205,130],
+  "Österreich":[215,150],"Slowakei":[228,140],"Ungarn":[230,155],"Slowenien":[210,166],
+  "Kroatien":[215,176],"Italien":[190,200],"Rumänien":[260,170],"Bulgarien":[250,195],
+  "Griechenland":[245,230],"Malta":[195,250],"Zypern":[300,245]
+};
+
+function drawGeoSVG(geo){
+  if(!geo) return "";
+  if(geo.type === "germany"){
+    const activeKey = GERMANY_KEYMAP[geo.key] || geo.key;
+    const shapes = GERMANY_ORDER.map(name => {
+      const active = name === activeKey;
+      return `<polygon points="${GERMANY_POLY[name]}" class="${active ? 'geo-region-active' : 'geo-region'}"/>`;
+    }).join("");
+    return `<svg class="geo-map" viewBox="0 0 300 410">${shapes}</svg>`;
+  }
+  if(geo.type === "bayern"){
+    const shapes = BAYERN_ORDER.map(name => {
+      const active = name === geo.key;
+      return `<polygon points="${BAYERN_POLY[name]}" class="${active ? 'geo-region-active' : 'geo-region'}"/>`;
+    }).join("");
+    let pin = "";
+    if(geo.pin){
+      const pts = BAYERN_POLY[geo.key].split(" ").map(p => p.split(",").map(Number));
+      const cx = pts.reduce((a,p)=>a+p[0],0)/pts.length;
+      const cy = pts.reduce((a,p)=>a+p[1],0)/pts.length;
+      pin = `<circle cx="${cx}" cy="${cy-6}" r="5" class="geo-pin"/><text x="${cx+9}" y="${cy-3}" class="geo-pin-label">${geo.pin}</text>`;
+    }
+    return `<svg class="geo-map" viewBox="0 0 220 240">${shapes}${pin}</svg>`;
+  }
+  if(geo.type === "europe"){
+    const dots = Object.entries(EUROPE_CAPITALS).map(([name,[x,y]]) => {
+      const active = name === geo.key;
+      return `<circle cx="${x}" cy="${y}" r="${active ? 8 : 3}" class="${active ? 'geo-active' : 'geo-dot'}"/>`;
+    }).join("");
+    return `<svg class="geo-map" viewBox="0 0 320 270">${dots}</svg>`;
+  }
+  return "";
+}
+
+const ICON_STROKE = 'stroke="#16324F" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+const ICONS = {
+  burg: `<rect x="16" y="30" width="28" height="20" ${ICON_STROKE}/><rect x="16" y="18" width="7" height="12" ${ICON_STROKE}/><rect x="26.5" y="18" width="7" height="12" ${ICON_STROKE}/><rect x="37" y="18" width="7" height="12" ${ICON_STROKE}/><line x1="30" y1="10" x2="30" y2="18" ${ICON_STROKE}/>`,
+  parkplatz: `<rect x="12" y="10" width="36" height="40" rx="4" ${ICON_STROKE}/><text x="30" y="38" font-size="24" font-weight="700" text-anchor="middle" fill="#16324F">P</text>`,
+  friedhof: `<rect x="10" y="12" width="40" height="36" ${ICON_STROKE}/><line x1="20" y1="20" x2="20" y2="30" ${ICON_STROKE}/><line x1="15" y1="24" x2="25" y2="24" ${ICON_STROKE}/><line x1="40" y1="20" x2="40" y2="30" ${ICON_STROKE}/><line x1="35" y1="24" x2="45" y2="24" ${ICON_STROKE}/><line x1="30" y1="32" x2="30" y2="42" ${ICON_STROKE}/><line x1="25" y1="36" x2="35" y2="36" ${ICON_STROKE}/>`,
+  kirche: `<circle cx="30" cy="36" r="12" ${ICON_STROKE}/><line x1="30" y1="10" x2="30" y2="24" ${ICON_STROKE}/><line x1="24" y1="16" x2="36" y2="16" ${ICON_STROKE}/>`,
+  fussweg: `<line x1="8" y1="30" x2="16" y2="30" ${ICON_STROKE}/><line x1="24" y1="30" x2="32" y2="30" ${ICON_STROKE}/><line x1="40" y1="30" x2="48" y2="30" ${ICON_STROKE}/>`,
+  bahnlinie: `<line x1="8" y1="30" x2="52" y2="30" ${ICON_STROKE}/><line x1="14" y1="24" x2="14" y2="36" ${ICON_STROKE}/><line x1="24" y1="24" x2="24" y2="36" ${ICON_STROKE}/><line x1="34" y1="24" x2="34" y2="36" ${ICON_STROKE}/><line x1="44" y1="24" x2="44" y2="36" ${ICON_STROKE}/>`,
+  nadelwald: `<polygon points="30,8 42,26 34,26 44,40 16,40 26,26 18,26" ${ICON_STROKE}/><rect x="27" y="40" width="6" height="10" ${ICON_STROKE}/>`,
+  laubwald: `<circle cx="30" cy="24" r="16" ${ICON_STROKE}/><rect x="27" y="38" width="6" height="12" ${ICON_STROKE}/>`,
+  wiese: `<rect x="8" y="18" width="44" height="24" fill="#C9DDB0" stroke="#16324F" stroke-width="2"/>`,
+  fluss: `<path d="M6,20 Q20,35 30,20 T54,20" stroke="#3E6D9C" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M6,32 Q20,47 30,32 T54,32" stroke="#3E6D9C" stroke-width="4" fill="none" stroke-linecap="round"/>`,
+  see: `<ellipse cx="30" cy="30" rx="22" ry="14" fill="#A7C7E7" stroke="#16324F" stroke-width="2"/>`,
+  haltestelle: `<circle cx="30" cy="30" r="18" ${ICON_STROKE}/><text x="30" y="38" font-size="20" font-weight="700" text-anchor="middle" fill="#16324F">H</text>`,
+  post: `<rect x="10" y="16" width="40" height="28" ${ICON_STROKE}/><path d="M10,16 L30,34 L50,16" ${ICON_STROKE}/>`,
+  krankenhaus: `<rect x="10" y="10" width="40" height="40" ${ICON_STROKE}/><line x1="30" y1="18" x2="30" y2="42" stroke="#C1533B" stroke-width="5"/><line x1="18" y1="30" x2="42" y2="30" stroke="#C1533B" stroke-width="5"/>`,
+  spielplatz: `<line x1="12" y1="48" x2="12" y2="14" ${ICON_STROKE}/><line x1="48" y1="48" x2="48" y2="14" ${ICON_STROKE}/><line x1="12" y1="14" x2="48" y2="14" ${ICON_STROKE}/><line x1="30" y1="14" x2="30" y2="34" ${ICON_STROKE}/><circle cx="30" cy="40" r="6" ${ICON_STROKE}/>`,
+  freibad: `<path d="M6,22 Q16,14 26,22 T46,22 T54,22" ${ICON_STROKE}/><path d="M6,34 Q16,26 26,34 T46,34 T54,34" ${ICON_STROKE}/><path d="M6,46 Q16,38 26,46 T46,46 T54,46" ${ICON_STROKE}/>`,
+  aussichtspunkt: `<circle cx="30" cy="30" r="4" fill="#16324F"/><line x1="30" y1="6" x2="30" y2="18" ${ICON_STROKE}/><line x1="30" y1="42" x2="30" y2="54" ${ICON_STROKE}/><line x1="6" y1="30" x2="18" y2="30" ${ICON_STROKE}/><line x1="42" y1="30" x2="54" y2="30" ${ICON_STROKE}/><line x1="12" y1="12" x2="20" y2="20" ${ICON_STROKE}/><line x1="40" y1="40" x2="48" y2="48" ${ICON_STROKE}/><line x1="48" y1="12" x2="40" y2="20" ${ICON_STROKE}/><line x1="20" y1="40" x2="12" y2="48" ${ICON_STROKE}/>`
+};
+
+function drawIconSVG(key){
+  if(!key || !ICONS[key]) return "";
+  return `<svg class="geo-map icon-map" viewBox="0 0 60 60">${ICONS[key]}</svg>`;
+}
+
+let state = {};
+let selectedDecks = new Set(Object.keys(DECKS));
+let onlyWeak = false;
+let session = null;
+
+const SUPABASE_URL = "DEINE_SUPABASE_PROJECT_URL";
+const SUPABASE_ANON_KEY = "DEIN_SUPABASE_ANON_KEY";
+const SUPABASE_CONFIGURED = !SUPABASE_URL.startsWith("DEINE_") && !SUPABASE_ANON_KEY.startsWith("DEIN_");
+let supabase = null;
+if(SUPABASE_CONFIGURED && window.supabase){
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+const STORAGE_KEY = "hsu-flashcards-state-v1";
+
+async function loadState(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw) state = JSON.parse(raw);
+  }catch(e){ state = {}; }
+  ALL_CARDS.forEach(c => { if(!state[c.id]) state[c.id] = { box: 0 }; });
+
+  if(supabase){
+    try{
+      const { data, error } = await supabase.from('flashcard_state').select('card_id, box');
+      if(data){
+        data.forEach(row => {
+          if(state[row.card_id]) state[row.card_id].box = row.box;
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      }
+    }catch(e){}
+  }
+}
+
+function saveState(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+}
+
+async function syncCard(cardId, box){
+  if(!supabase) return;
+  try{
+    await supabase.from('flashcard_state').upsert({ card_id: cardId, box: box, updated_at: new Date().toISOString() });
+  }catch(e){}
+}
+
+function boxOf(id){ return state[id] ? state[id].box : 0; }
+
+function pickCard(pool){
+  if(pool.length === 0) return null;
+  const weights = pool.map(c => Math.max(1, 5 - boxOf(c.id)));
+  const total = weights.reduce((a,b)=>a+b, 0);
+  let r = Math.random() * total;
+  for(let i=0;i<pool.length;i++){
+    r -= weights[i];
+    if(r <= 0) return pool[i];
+  }
+  return pool[pool.length-1];
+}
+
+function currentPool(){
+  let pool = ALL_CARDS.filter(c => selectedDecks.has(c.deck));
+  if(onlyWeak) pool = pool.filter(c => boxOf(c.id) <= 1);
+  return pool;
+}
+
+function overallProgress(){
+  const total = ALL_CARDS.length;
+  const mastered = ALL_CARDS.filter(c => boxOf(c.id) >= 4).length;
+  return { total, mastered, pct: total ? Math.round(mastered/total*100) : 0 };
+}
+
+function drawMountain(pct){
+  const svg = document.getElementById("mountain-svg");
+  const px = 40 + (400-80) * (pct/100);
+  const py = 95 - 70 * (pct/100);
+  svg.innerHTML = `
+    <polygon points="10,100 130,25 175,55 260,10 390,100" fill="none" stroke="#3E6D9C" stroke-width="3" stroke-linejoin="round"/>
+    <polygon points="10,100 130,25 175,55 260,10 390,100" fill="#A7C7E7" opacity="0.35"/>
+    <circle cx="${px}" cy="${py}" r="7" fill="#D9A441" stroke="#16324F" stroke-width="2"/>
+  `;
+  document.getElementById("mountain-pct").textContent = pct + "% geschafft";
+}
+
+function render(){
+  const app = document.getElementById("app");
+  const prog = overallProgress();
+  drawMountain(prog.pct);
+
+  if(!session){
+    let html = `<div class="setup-card">
+      <div class="stat-row"><span>Insgesamt gemeistert</span><span>${prog.mastered} / ${prog.total}</span></div>
+      <div class="progressbar"><div style="width:${prog.pct}%"></div></div>
+      <div class="cat-list">`;
+
+    Object.entries(DECKS).forEach(([id, deck]) => {
+      const cards = ALL_CARDS.filter(c => c.deck === id);
+      const weakCount = cards.filter(c => boxOf(c.id) <= 1).length;
+      const checked = selectedDecks.has(id) ? "checked" : "";
+      html += `<label class="cat-item ${weakCount > cards.length/2 ? 'weak' : ''}">
+        <span style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" data-deck="${id}" ${checked} style="width:18px;height:18px;">
+          ${deck.name}
+        </span>
+        <span class="count">${weakCount} zu üben</span>
+      </label>`;
+    });
+
+    html += `</div>
+      <label style="display:flex;align-items:center;justify-content:space-between;font-size:0.9rem;font-weight:700;color:var(--tief);margin-bottom:0.8rem;">
+        Nur schwache Karten üben
+        <button class="toggle ${onlyWeak ? 'on' : ''}" id="weak-toggle"></button>
+      </label>
+      <button class="primary" id="start-btn">Üben starten</button>
+    </div>`;
+
+    app.innerHTML = html;
+
+    app.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', e => {
+        const d = e.target.getAttribute('data-deck');
+        if(e.target.checked) selectedDecks.add(d); else selectedDecks.delete(d);
+        render();
+      });
+    });
+    document.getElementById('weak-toggle').addEventListener('click', () => {
+      onlyWeak = !onlyWeak;
+      render();
+    });
+    document.getElementById('start-btn').addEventListener('click', () => {
+      const pool = currentPool();
+      if(pool.length === 0) return;
+      session = { current: pickCard(pool), lastId: null, seen: 0, right: 0 };
+      render();
+    });
+    return;
+  }
+
+  const pool = currentPool();
+  if(pool.length === 0 || !session.current){
+    app.innerHTML = `<div class="card-shell"><div class="empty">Keine Karten in dieser Auswahl.<br>Wähle andere Themen aus.</div>
+      <button class="ghost" id="back-btn">Zurück zur Übersicht</button></div>`;
+    document.getElementById('back-btn').addEventListener('click', () => { session = null; render(); });
+    return;
+  }
+
+  const card = session.current;
+  const deckName = DECKS[card.deck].name;
+  const flipped = session.flipped;
+
+  app.innerHTML = `
+    <div class="card-shell">
+      <div class="top-bar">
+        <button class="back-link" id="exit-btn">‹ Übersicht</button>
+        <span class="cat-name">${deckName}</span>
+      </div>
+      <div class="flashcard ${flipped ? 'flipped' : ''}" id="flip-area">
+        <span class="tag">${flipped ? 'antwort' : 'frage'}</span>
+        ${drawGeoSVG(card.geo)}
+        ${drawIconSVG(card.icon)}
+        <span>${flipped ? card.back : card.front}</span>
+        <span class="hint">${flipped ? 'antippen zum Zurückdrehen' : 'antippen zum Aufdecken'}</span>
+      </div>
+      ${flipped ? `<div class="answer-buttons">
+        <button class="btn-again" id="again-btn">Nochmal üben</button>
+        <button class="btn-know" id="know-btn">Kann ich!</button>
+      </div>` : ''}
+    </div>
+  `;
+
+  if(!flipped){
+    document.getElementById('flip-area').addEventListener('click', () => {
+      session.flipped = true;
+      render();
+    });
+  } else {
+    document.getElementById('flip-area').addEventListener('click', () => {
+      session.flipped = false;
+      render();
+    });
+    document.getElementById('again-btn').addEventListener('click', (e) => { e.stopPropagation(); handleAnswer(false); });
+    document.getElementById('know-btn').addEventListener('click', (e) => { e.stopPropagation(); handleAnswer(true); });
+  }
+  document.getElementById('exit-btn').addEventListener('click', () => { session = null; render(); });
+}
+
+function handleAnswer(correct){
+  const card = session.current;
+  const s = state[card.id];
+  s.box = correct ? Math.min(4, s.box + 1) : 0;
+  saveState();
+  syncCard(card.id, s.box);
+  const pool = currentPool();
+  let next = pickCard(pool.filter(c => c.id !== card.id));
+  if(!next) next = pickCard(pool);
+  session.current = next;
+  session.flipped = false;
+  render();
+}
+
+(async function init(){
+  await loadState();
+  render();
+})();
+</script>
+</body>
+</html>
