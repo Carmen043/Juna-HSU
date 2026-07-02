@@ -275,10 +275,10 @@ const DECKS = {
   ].map(([f,b]) => ({ front: "Hauptstadt von " + f + "?", back: b, input:true }))},
 
   "nachbarn_d": { name: "Nachbarländer Deutschlands", color:"c2", cards: [
-    ["Wie viele Staaten grenzen an Deutschland?","9"],
-    ["Nenne die 9 Nachbarländer Deutschlands.","Dänemark, Polen, Tschechien, Österreich, Schweiz, Frankreich, Luxemburg, Belgien, Niederlande"],
-    ["Nachbarland im Norden von Deutschland?","Dänemark"],
-    ["Nachbarland im Osten von Deutschland?","Polen"]
+    { front:"Wie viele Staaten grenzen an Deutschland?", back:"9", input:true },
+    { front:"Nenne die 9 Nachbarländer Deutschlands.", back:"Dänemark, Polen, Tschechien, Österreich, Schweiz, Frankreich, Luxemburg, Belgien, Niederlande" },
+    ...["Dänemark","Polen","Tschechien","Österreich","Schweiz","Frankreich","Luxemburg","Belgien","Niederlande"]
+      .map(land => ({ front: "Welches Land ist rot markiert?", back: land, input:true, map: land }))
   ]},
 
   "bayern": { name: "Bayern Steckbrief", color:"c3", cards: [
@@ -363,7 +363,8 @@ Object.entries(DECKS).forEach(([deckId, deck]) => {
     const back = isArr ? c[1] : c.back;
     const icon = isArr ? null : c.icon;
     const input = isArr ? false : !!c.input;
-    ALL_CARDS.push({ id: deckId + "_" + i, deck: deckId, front, back, icon, input });
+    const map = isArr ? null : c.map;
+    ALL_CARDS.push({ id: deckId + "_" + i, deck: deckId, front, back, icon, input, map });
   });
 });
 
@@ -371,6 +372,36 @@ function normalizeAnswer(str){
   return String(str || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
+const NEIGHBOR_LAYOUT = [
+  { name:"Dänemark", angle:0 },
+  { name:"Polen", angle:42 },
+  { name:"Tschechien", angle:85 },
+  { name:"Österreich", angle:120 },
+  { name:"Schweiz", angle:155 },
+  { name:"Frankreich", angle:200 },
+  { name:"Luxemburg", angle:232 },
+  { name:"Belgien", angle:258 },
+  { name:"Niederlande", angle:288 }
+];
+
+function drawNeighborMap(target){
+  if(!target) return "";
+  const cx = 150, cy = 150, r = 100;
+  let shapes = `<ellipse cx="${cx}" cy="${cy}" rx="42" ry="34" fill="#AFC2CE" stroke="#16324F" stroke-width="2"/>
+    <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="700" fill="#16324F">Deutschland</text>`;
+  NEIGHBOR_LAYOUT.forEach(n => {
+    const rad = n.angle * Math.PI / 180;
+    const x = cx + r * Math.sin(rad);
+    const y = cy - r * Math.cos(rad);
+    const active = n.name === target;
+    const fill = active ? "#C1533B" : "#E4DCC8";
+    shapes += `<ellipse cx="${x}" cy="${y}" rx="34" ry="24" fill="${fill}" stroke="#16324F" stroke-width="2"/>`;
+    if(!active){
+      shapes += `<text x="${x}" y="${y+4}" text-anchor="middle" font-size="10" font-weight="700" fill="#16324F">${n.name}</text>`;
+    }
+  });
+  return `<svg class="geo-map" viewBox="0 0 300 300">${shapes}</svg>`;
+}
 const ICON_STROKE = 'stroke="#16324F" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"';
 const ICONS = {
   burg: `<rect x="16" y="30" width="28" height="20" ${ICON_STROKE}/><rect x="16" y="18" width="7" height="12" ${ICON_STROKE}/><rect x="26.5" y="18" width="7" height="12" ${ICON_STROKE}/><rect x="37" y="18" width="7" height="12" ${ICON_STROKE}/><line x1="30" y1="10" x2="30" y2="18" ${ICON_STROKE}/>`,
@@ -558,6 +589,7 @@ function render(){
           <div class="flashcard">
             <span class="tag">frage</span>
             ${drawIconSVG(card.icon)}
+            ${drawNeighborMap(card.map)}
             <span>${card.front}</span>
           </div>
           <form id="answer-form">
@@ -588,6 +620,7 @@ function render(){
           <div class="flashcard" style="border-color:${ok ? 'var(--tanne)' : 'var(--terra)'};">
             <span class="tag">${ok ? 'richtig' : 'leider falsch'}</span>
             ${drawIconSVG(card.icon)}
+            ${drawNeighborMap(card.map)}
             <span>${card.front}</span>
           </div>
           <div class="feedback-box ${ok ? 'feedback-ok' : 'feedback-bad'}">
