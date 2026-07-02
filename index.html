@@ -208,6 +208,32 @@
     margin: 0 auto 0.6rem;
     display:block;
   }
+  .answer-input{
+    width:100%;
+    padding: 13px 14px;
+    border: 2px solid #E4DCC8;
+    border-radius: 12px;
+    font-size: 1.05rem;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    color: var(--tief);
+    margin-top: 0.9rem;
+  }
+  .answer-input:focus{
+    outline:none; border-color: var(--alpin);
+  }
+  .feedback-box{
+    margin-top: 0.9rem;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+  .feedback-ok{ background:#E3EFDF; color: var(--tanne); }
+  .feedback-bad{ background:#FBE7E2; color: var(--terra); }
+  .typed-echo{
+    font-weight: 400; font-size: 0.85rem; opacity: 0.8;
+  }
   .geo-region{ fill: #E4DCC8; stroke: #FFFFFF; stroke-width: 2; }
   .geo-region-active{ fill: var(--terra); stroke: var(--tief); stroke-width: 2.5; }
   .geo-dot{ fill: #C9BFA0; }
@@ -246,7 +272,7 @@ const DECKS = {
     ["Thüringen","Erfurt"],["Nordrhein-Westfalen","Düsseldorf"],["Sachsen","Dresden"],
     ["Rheinland-Pfalz","Mainz"],["Saarland","Saarbrücken"],["Baden-Württemberg","Stuttgart"],
     ["Bayern","München"],["Hamburg","Hamburg"],["Bremen","Bremen"],["Berlin","Berlin"]
-  ].map(([f,b]) => ({ front: "Hauptstadt von " + f + "?", back: b, geo: { type:"germany", key: f } }))},
+  ].map(([f,b]) => ({ front: "Hauptstadt von " + f + "?", back: b, input:true }))},
 
   "nachbarn_d": { name: "Nachbarländer Deutschlands", color:"c2", cards: [
     ["Wie viele Staaten grenzen an Deutschland?","9"],
@@ -271,21 +297,21 @@ const DECKS = {
   ]},
 
   "regierungsbezirke": { name: "Regierungsbezirke Bayerns", color:"c4", cards: [
-    { front:"Regierungssitz von Oberbayern?", back:"München", geo:{type:"bayern", key:"Oberbayern"} },
-    { front:"Regierungssitz von Niederbayern?", back:"Landshut", geo:{type:"bayern", key:"Niederbayern"} },
-    { front:"Regierungssitz der Oberpfalz?", back:"Regensburg", geo:{type:"bayern", key:"Oberpfalz"} },
-    { front:"Regierungssitz von Oberfranken?", back:"Bayreuth", geo:{type:"bayern", key:"Oberfranken"} },
-    { front:"Regierungssitz von Mittelfranken?", back:"Ansbach", geo:{type:"bayern", key:"Mittelfranken"} },
-    { front:"Regierungssitz von Unterfranken?", back:"Würzburg", geo:{type:"bayern", key:"Unterfranken"} },
-    { front:"Regierungssitz von Schwaben?", back:"Augsburg", geo:{type:"bayern", key:"Schwaben"} },
+    { front:"Regierungssitz von Oberbayern?", back:"München", input:true },
+    { front:"Regierungssitz von Niederbayern?", back:"Landshut", input:true },
+    { front:"Regierungssitz der Oberpfalz?", back:"Regensburg", input:true },
+    { front:"Regierungssitz von Oberfranken?", back:"Bayreuth", input:true },
+    { front:"Regierungssitz von Mittelfranken?", back:"Ansbach", input:true },
+    { front:"Regierungssitz von Unterfranken?", back:"Würzburg", input:true },
+    { front:"Regierungssitz von Schwaben?", back:"Augsburg", input:true },
     { front:"Wie viele Regierungsbezirke hat Bayern?", back:"7" },
-    { front:"Nachbarbezirke von Oberbayern?", back:"Schwaben, Mittelfranken, Oberpfalz, Niederbayern", geo:{type:"bayern", key:"Oberbayern"} }
+    { front:"Nachbarbezirke von Oberbayern?", back:"Schwaben, Mittelfranken, Oberpfalz, Niederbayern" }
   ]},
 
   "landkreise": { name: "Landkreise & Gemeinden", color:"c5", cards: [
-    { front:"In welchem Landkreis liegt Bernried?", back:"Weilheim-Schongau", geo:{type:"bayern", key:"Oberbayern", pin:"Bernried"} },
-    { front:"Nachbar-Landkreise von Weilheim-Schongau?", back:"Landsberg am Lech, Starnberg, Bad Tölz-Wolfratshausen, Garmisch-Partenkirchen", geo:{type:"bayern", key:"Oberbayern", pin:"Weilheim-Schongau"} },
-    { front:"Nachbargemeinden von Bernried?", back:"Wielenbach und Seeshaupt", geo:{type:"bayern", key:"Oberbayern", pin:"Bernried"} }
+    { front:"In welchem Landkreis liegt Bernried?", back:"Weilheim-Schongau", input:true },
+    { front:"Nachbar-Landkreise von Weilheim-Schongau?", back:"Landsberg am Lech, Starnberg, Bad Tölz-Wolfratshausen, Garmisch-Partenkirchen" },
+    { front:"Nachbargemeinden von Bernried?", back:"Wielenbach und Seeshaupt" }
   ]},
 
   "kartenzeichen": { name: "Kartenzeichen & Legende", color:"c6", cards: [
@@ -326,7 +352,7 @@ const DECKS = {
     ["Ungarn","Budapest"],["Slowenien","Ljubljana"],["Kroatien","Zagreb"],["Italien","Rom"],
     ["Spanien","Madrid"],["Portugal","Lissabon"],["Griechenland","Athen"],["Rumänien","Bukarest"],
     ["Bulgarien","Sofia"],["Malta","Valletta"],["Zypern","Nikosia"]
-  ].map(([land,hs]) => ({ front: "Hauptstadt von EU-Land " + land + "?", back: hs, geo: { type:"europe", key: land } }))}
+  ].map(([land,hs]) => ({ front: "Hauptstadt von EU-Land " + land + "?", back: hs, input:true }))}
 };
 
 let ALL_CARDS = [];
@@ -335,88 +361,14 @@ Object.entries(DECKS).forEach(([deckId, deck]) => {
     const isArr = Array.isArray(c);
     const front = isArr ? c[0] : c.front;
     const back = isArr ? c[1] : c.back;
-    const geo = isArr ? null : c.geo;
     const icon = isArr ? null : c.icon;
-    ALL_CARDS.push({ id: deckId + "_" + i, deck: deckId, front, back, geo, icon });
+    const input = isArr ? false : !!c.input;
+    ALL_CARDS.push({ id: deckId + "_" + i, deck: deckId, front, back, icon, input });
   });
 });
 
-const GERMANY_POLY = {
-  "Schleswig-Holstein":"90,2 160,2 168,38 142,56 100,50 78,26",
-  "Mecklenburg-Vorpommern":"142,10 232,16 262,56 232,92 172,82 150,46 140,26",
-  "Hamburg":"116,50 136,48 139,66 118,68",
-  "Bremen":"76,94 98,91 103,113 79,116",
-  "Niedersachsen":"40,55 142,56 150,46 172,82 162,112 192,140 150,166 88,170 44,140 35,95",
-  "Berlin":"214,147 233,145 236,166 216,169",
-  "Brandenburg":"184,110 262,104 277,150 260,192 204,196 184,166 195,140",
-  "Sachsen-Anhalt":"140,110 184,110 195,140 184,166 150,171 134,140",
-  "Nordrhein-Westfalen":"28,140 88,170 106,210 70,236 33,216 18,176",
-  "Hessen":"106,175 150,171 161,210 141,236 104,226 94,200",
-  "Thueringen":"150,171 195,166 206,196 180,216 150,211 139,190",
-  "Sachsen":"206,196 262,192 277,226 246,246 209,230 195,210",
-  "Rheinland-Pfalz":"54,221 106,226 116,260 90,286 54,270 39,240",
-  "Saarland":"54,270 76,268 81,300 57,300",
-  "Baden-Wuerttemberg":"90,260 150,255 176,290 160,335 104,340 80,300 80,286",
-  "Bayern":"160,230 246,235 282,262 292,340 240,406 160,400 140,340 150,290"
-};
-const GERMANY_ORDER = ["Niedersachsen","Mecklenburg-Vorpommern","Brandenburg","Sachsen-Anhalt",
-  "Nordrhein-Westfalen","Hessen","Thueringen","Sachsen","Rheinland-Pfalz","Baden-Wuerttemberg",
-  "Bayern","Schleswig-Holstein","Saarland","Hamburg","Bremen","Berlin"];
-const GERMANY_KEYMAP = { "Thüringen":"Thueringen", "Baden-Württemberg":"Baden-Wuerttemberg" };
-
-const BAYERN_POLY = {
-  "Unterfranken":"40,10 110,4 122,42 92,76 44,70 24,40",
-  "Oberfranken":"122,4 192,16 202,56 162,80 122,60 122,42",
-  "Mittelfranken":"44,70 122,60 132,100 92,142 48,122",
-  "Oberpfalz":"122,60 162,80 202,56 212,142 152,152 132,100",
-  "Schwaben":"24,40 48,122 92,142 72,222 18,212 8,120",
-  "Niederbayern":"152,152 212,142 216,232 152,236 142,190",
-  "Oberbayern":"92,142 132,100 152,152 142,190 152,236 100,236 72,222"
-};
-const BAYERN_ORDER = ["Unterfranken","Oberfranken","Mittelfranken","Oberpfalz","Schwaben","Niederbayern","Oberbayern"];
-
-const EUROPE_CAPITALS = {
-  "Irland":[40,90],"Portugal":[42,232],"Spanien":[90,220],"Frankreich":[142,150],
-  "Belgien":[160,120],"Luxemburg":[164,130],"Niederlande":[155,105],"Deutschland":[200,110],
-  "Dänemark":[195,70],"Schweden":[222,40],"Finnland":[270,30],"Estland":[270,60],
-  "Lettland":[265,75],"Litauen":[260,90],"Polen":[230,100],"Tschechien":[205,130],
-  "Österreich":[215,150],"Slowakei":[228,140],"Ungarn":[230,155],"Slowenien":[210,166],
-  "Kroatien":[215,176],"Italien":[190,200],"Rumänien":[260,170],"Bulgarien":[250,195],
-  "Griechenland":[245,230],"Malta":[195,250],"Zypern":[300,245]
-};
-
-function drawGeoSVG(geo){
-  if(!geo) return "";
-  if(geo.type === "germany"){
-    const activeKey = GERMANY_KEYMAP[geo.key] || geo.key;
-    const shapes = GERMANY_ORDER.map(name => {
-      const active = name === activeKey;
-      return `<polygon points="${GERMANY_POLY[name]}" class="${active ? 'geo-region-active' : 'geo-region'}"/>`;
-    }).join("");
-    return `<svg class="geo-map" viewBox="0 0 300 410">${shapes}</svg>`;
-  }
-  if(geo.type === "bayern"){
-    const shapes = BAYERN_ORDER.map(name => {
-      const active = name === geo.key;
-      return `<polygon points="${BAYERN_POLY[name]}" class="${active ? 'geo-region-active' : 'geo-region'}"/>`;
-    }).join("");
-    let pin = "";
-    if(geo.pin){
-      const pts = BAYERN_POLY[geo.key].split(" ").map(p => p.split(",").map(Number));
-      const cx = pts.reduce((a,p)=>a+p[0],0)/pts.length;
-      const cy = pts.reduce((a,p)=>a+p[1],0)/pts.length;
-      pin = `<circle cx="${cx}" cy="${cy-6}" r="5" class="geo-pin"/><text x="${cx+9}" y="${cy-3}" class="geo-pin-label">${geo.pin}</text>`;
-    }
-    return `<svg class="geo-map" viewBox="0 0 220 240">${shapes}${pin}</svg>`;
-  }
-  if(geo.type === "europe"){
-    const dots = Object.entries(EUROPE_CAPITALS).map(([name,[x,y]]) => {
-      const active = name === geo.key;
-      return `<circle cx="${x}" cy="${y}" r="${active ? 8 : 3}" class="${active ? 'geo-active' : 'geo-dot'}"/>`;
-    }).join("");
-    return `<svg class="geo-map" viewBox="0 0 320 270">${dots}</svg>`;
-  }
-  return "";
+function normalizeAnswer(str){
+  return String(str || "").trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 const ICON_STROKE = 'stroke="#16324F" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round"';
@@ -595,6 +547,61 @@ function render(){
   const deckName = DECKS[card.deck].name;
   const flipped = session.flipped;
 
+  if(card.input){
+    if(!session.checked){
+      app.innerHTML = `
+        <div class="card-shell">
+          <div class="top-bar">
+            <button class="back-link" id="exit-btn">‹ Übersicht</button>
+            <span class="cat-name">${deckName}</span>
+          </div>
+          <div class="flashcard">
+            <span class="tag">frage</span>
+            ${drawIconSVG(card.icon)}
+            <span>${card.front}</span>
+          </div>
+          <form id="answer-form">
+            <input type="text" id="answer-input" class="answer-input" autocomplete="off"
+              autocapitalize="words" autocorrect="off" spellcheck="false"
+              placeholder="Antwort eintippen …">
+            <button type="submit" class="primary" style="margin-top:0.7rem;">Prüfen</button>
+          </form>
+        </div>`;
+      document.getElementById('exit-btn').addEventListener('click', () => { session = null; render(); });
+      const input = document.getElementById('answer-input');
+      input.focus();
+      document.getElementById('answer-form').addEventListener('submit', e => {
+        e.preventDefault();
+        session.typedValue = input.value;
+        session.wasCorrect = normalizeAnswer(input.value) === normalizeAnswer(card.back);
+        session.checked = true;
+        render();
+      });
+    } else {
+      const ok = session.wasCorrect;
+      app.innerHTML = `
+        <div class="card-shell">
+          <div class="top-bar">
+            <button class="back-link" id="exit-btn">‹ Übersicht</button>
+            <span class="cat-name">${deckName}</span>
+          </div>
+          <div class="flashcard" style="border-color:${ok ? 'var(--tanne)' : 'var(--terra)'};">
+            <span class="tag">${ok ? 'richtig' : 'leider falsch'}</span>
+            ${drawIconSVG(card.icon)}
+            <span>${card.front}</span>
+          </div>
+          <div class="feedback-box ${ok ? 'feedback-ok' : 'feedback-bad'}">
+            Deine Antwort: <span class="typed-echo">${session.typedValue || '(leer)'}</span>
+            ${ok ? '' : `<br>Richtig: ${card.back}`}
+          </div>
+          <button class="primary" id="continue-btn" style="margin-top:0.9rem;">Weiter</button>
+        </div>`;
+      document.getElementById('exit-btn').addEventListener('click', () => { session = null; render(); });
+      document.getElementById('continue-btn').addEventListener('click', () => handleAnswer(ok));
+    }
+    return;
+  }
+
   app.innerHTML = `
     <div class="card-shell">
       <div class="top-bar">
@@ -603,7 +610,6 @@ function render(){
       </div>
       <div class="flashcard ${flipped ? 'flipped' : ''}" id="flip-area">
         <span class="tag">${flipped ? 'antwort' : 'frage'}</span>
-        ${drawGeoSVG(card.geo)}
         ${drawIconSVG(card.icon)}
         <span>${flipped ? card.back : card.front}</span>
         <span class="hint">${flipped ? 'antippen zum Zurückdrehen' : 'antippen zum Aufdecken'}</span>
@@ -642,6 +648,9 @@ function handleAnswer(correct){
   if(!next) next = pickCard(pool);
   session.current = next;
   session.flipped = false;
+  session.checked = false;
+  session.typedValue = "";
+  session.wasCorrect = null;
   render();
 }
 
